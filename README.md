@@ -6,7 +6,7 @@ gradle build
 ```
 
 ## Running the project
-run the project from the top-level directory like so
+run the project from the top-level directory like so, passing the name of the log file (`<log_file_name>`) as an argument to the `gradle run` task
 ```
-java -cp ./build/classes/java/main/ ch.qos.logback.LogProcessor test.txt
+gradle run --args="<log_file_name>"
 ```
