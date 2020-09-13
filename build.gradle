@@ -1,0 +1,25 @@
+group 'com.test'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'application'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'com.google.code.gson:gson:2.8.6'
+    implementation 'ch.qos.logback:logback-classic:1.1.7'
+    testImplementation 'junit:junit:4.12'
+}
+
+application {
+    mainClassName = 'ch.qos.logback.LogProcessor'
+}
+
+task printLib {
+    println(sourceSets.main.runtimeClasspath.getAsPath())
+}
