@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.sql.Connection;
 import java.util.Scanner;
 import java.util.Vector;
 import java.util.logging.Level;
@@ -17,11 +18,12 @@ public class LogFileParser {
 
     private final String filename;
     private final long threshold;
-    // cache for temporary LogEvents that have not matched another event yet
-    private final Vector<LogEvent> logEvents;
+    // cache for temporary LogEntries that have not matched another event yet
+    private final Vector<LogEntry> logEntries;
+    private final Connection dbConnection;
 
-    public LogFileParser(String filename) {
-        this(filename, 4);
+    public LogFileParser(String filename, Connection con) {
+        this(filename, 4, con);
     }
 
     /**
@@ -29,14 +31,15 @@ public class LogFileParser {
      * @param filename  name of the log file to parse
      * @param threshold threshold in ms for LogEvents to be flagged
      */
-    public LogFileParser(String filename, long threshold) {
+    public LogFileParser(String filename, long threshold, Connection con) {
         this.filename = filename;
         this.threshold = threshold;
-        this.logEvents = new Vector<>();
+        this.logEntries = new Vector<>();
+        this.dbConnection = con;
     }
 
     /**
-     * Parses the log file this.filename, records all LogEvents in the local HSQLDB, and flags all LogEvents that last
+     * Parses the log file this.filename, records all LogEntries in the local HSQLDB, and flags all LogEvents that last
      * for longer than this.threshold
      */
     public void parse() throws FileNotFoundException {
@@ -51,27 +54,27 @@ public class LogFileParser {
             String data = myReader.nextLine();
             LOGGER.log(Level.FINER, "Raw JSON log event read from log file: '{0}'", data);
             // TODO: catch some errors and log in case generation fails, etc.
-            LogEvent logEvent = g.fromJson(data, LogEvent.class);
-            LOGGER.log(Level.FINEST, "Parsed LogEvent: '{0}'", logEvent);
-            this.handleLogEvent(logEvent);
+            LogEntry logEntry = g.fromJson(data, LogEntry.class);
+            LOGGER.log(Level.FINEST, "Parsed LogEvent: '{0}'", logEntry);
+            this.handleLogEntry(logEntry);
         }
 
         myReader.close();
     }
 
     /**
-     * Returns a LogEvent with a given id and removes it from the logEvents cache
+     * Returns a LogEntry with a given id and removes it from the this.logEntries cache
      * @param id    id of the LogEvent to find, return, and remove
      * @return      the LogEvent with the given id or null if none is found
      */
-    private LogEvent popLogEventById(String id) {
+    private LogEntry popLogEntryById(String id) {
         LOGGER.log(Level.FINER, "Looking for LogEvent with id '{0}'", id);
-        for (LogEvent logEvent : this.logEvents) {
-            LOGGER.log(Level.FINEST, "'{0}' found in local LogEvent cache", logEvent);
-            if (logEvent.getId().equals(id)) {
-                LOGGER.log(Level.FINER, "'{0}' matched the supplied id, removing from local cache", logEvent);
-                this.logEvents.remove(logEvent);
-                return logEvent;
+        for (LogEntry logEntry : this.logEntries) {
+            LOGGER.log(Level.FINEST, "'{0}' found in local LogEvent cache", logEntry);
+            if (logEntry.getId().equals(id)) {
+                LOGGER.log(Level.FINER, "'{0}' matched the supplied id, removing from local cache", logEntry);
+                this.logEntries.remove(logEntry);
+                return logEntry;
             }
         }
 
@@ -82,36 +85,37 @@ public class LogFileParser {
     /**
      * Handles a new LogEvent that has been read from the log file; if it has a pendant in this.logEvents, match them
      * and test for duration, otherwise add it to the local cache
-     * @param logEvent  LogEvent to handle
+     * @param logEntry  LogEvent to handle
      */
-    private void handleLogEvent(LogEvent logEvent) {
-        LogEvent oldLogEvent = this.popLogEventById(logEvent.getId());
-        LOGGER.log(Level.FINER, "'{0}' popped from the local cache", oldLogEvent);
-        if (oldLogEvent == null) {
-            LOGGER.log(Level.FINER, "No matching LogEvent found, adding '{0}' to local cache", logEvent);
-            this.logEvents.add(logEvent);
+    private void handleLogEntry(LogEntry logEntry) {
+        LogEntry oldLogEntry = this.popLogEntryById(logEntry.getId());
+        LOGGER.log(Level.FINER, "'{0}' popped from the local cache", oldLogEntry);
+        if (oldLogEntry == null) {
+            LOGGER.log(Level.FINER, "No matching LogEvent found, adding '{0}' to local cache", logEntry);
+            this.logEntries.add(logEntry);
             return;
+        } else {
+            try {
+                // TODO: is there a better place for storing the threshold?
+                LogEvent logEvent = new LogEvent(oldLogEntry, logEntry, this.threshold);
+                this.recordLogEvent(logEvent);
+            } catch (IncompatibleLogentriesException e) {
+                LOGGER.log(
+                    Level.SEVERE, "Cannot create LogEvent from provided LogEntries '{0}' and '{1}', skipping",
+                    new Object[] {oldLogEntry, logEntry}
+                );
+                LOGGER.log(Level.SEVERE, e.toString(), e);
+            }
         }
-
-        long duration = LogEvent.duration(oldLogEvent, logEvent);
-        if (duration > this.threshold) {
-            LOGGER.log(
-                Level.FINE, "Duration for '{0}' and '{1}' exceeds threshold '{2}', flagging",
-                new Object[] {logEvent, oldLogEvent, this.threshold}
-            );
-            // TODO: properly handle flagging
-            this.flagLogEvent(logEvent);
-        }
-
-        // TODO: properly handle (i.e. record) LogEvents
     }
 
     /**
-     * Flags a logEvent
-     * @param logEvent  the LogEvent to flag
+     * Records a LogEvent in the database referenced by this.dbConnection and flags it if the duration exceeds
+     * this.threshold
+     * @param logEvent  the LogEvent to be recorded in the database
      */
-    private void flagLogEvent(LogEvent logEvent) {
-        // TODO: use better method for flagging LogEvents? -> local DB
-        System.out.println("FLAG: " + logEvent.getId());
+    private void recordLogEvent(LogEvent logEvent) {
+        // TODO: implement proper recording
+        System.out.println(logEvent);
     }
 }

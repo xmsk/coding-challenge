@@ -6,8 +6,8 @@ import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class HSQLDBConnection {
-    private static final Logger LOGGER = Logger.getLogger(HSQLDBConnection.class.getName());
+public class HsqldbConnection {
+    private static final Logger LOGGER = Logger.getLogger(HsqldbConnection.class.getName());
     public static String defaultHost = "localhost";
     public static String defaultDb = "logging";
     public static String defaultDbUser = "SA";
@@ -17,12 +17,12 @@ public class HSQLDBConnection {
      * creates a HSQLDB connection with the default parameters
      * @return  HSQLDB connection to the default database
      */
-    public static Connection getConnection() {
+    public static Connection getConnection() throws SQLException {
         return getConnection(defaultHost, defaultDb, defaultDbUser, defaultDbPassword);
     }
 
     // TODO: add documentation
-    public static Connection getConnection(String host, String db, String user, String password) {
+    public static Connection getConnection(String host, String db, String user, String password) throws SQLException {
         Connection con = null;
         try {
             Class.forName("org.hsqldb.jdbc.JDBCDriver");
@@ -36,9 +36,6 @@ public class HSQLDBConnection {
         } catch (ClassNotFoundException e) {
             // TODO: create custom exception for when DB connection could not be created?
             LOGGER.log(Level.SEVERE, "HSQLDB JDBC driver missing");
-            LOGGER.log(Level.SEVERE, e.toString(), e);
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Could not execute SQL statement");
             LOGGER.log(Level.SEVERE, e.toString(), e);
         }
         return con;

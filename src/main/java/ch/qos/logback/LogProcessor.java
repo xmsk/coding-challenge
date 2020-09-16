@@ -1,6 +1,8 @@
 package ch.qos.logback;
 
 import java.io.FileNotFoundException;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -15,11 +17,18 @@ public class LogProcessor {
         final String filename = args[0];
         LOGGER.log(Level.INFO, "The first file name argument was: " + filename);
 
-        LogFileParser logFileParser = new LogFileParser(filename);
         try {
-            logFileParser.parse();
-        } catch (FileNotFoundException e) {
-            LOGGER.log(Level.SEVERE, "Log file {0} not found", filename);
+            Connection con = HsqldbConnection.getConnection();
+            LogFileParser logFileParser = new LogFileParser(filename, con);
+            try {
+                logFileParser.parse();
+            } catch (FileNotFoundException e) {
+                LOGGER.log(Level.SEVERE, "Log file {0} not found", filename);
+                LOGGER.log(Level.SEVERE, e.toString(), e);
+                System.exit(-1);
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Could create a connection to the HSQLDB, is an HSQLDB server running?");
             LOGGER.log(Level.SEVERE, e.toString(), e);
             System.exit(-1);
         }
