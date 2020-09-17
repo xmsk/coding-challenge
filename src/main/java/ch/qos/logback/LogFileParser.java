@@ -94,9 +94,9 @@ public class LogFileParser {
      */
     private void handleLogEntry(LogEntry logEntry) {
         LogEntry oldLogEntry = this.popLogEntryById(logEntry.getId());
-        LOGGER.log(Level.FINER, "'{0}' popped from the local cache", oldLogEntry);
+        LOGGER.log(Level.FINER, "`{0}` popped from the local cache", oldLogEntry);
         if (oldLogEntry == null) {
-            LOGGER.log(Level.FINER, "No matching LogEvent found, adding '{0}' to local cache", logEntry);
+            LOGGER.log(Level.FINER, "No matching LogEvent found, adding `{0}` to local cache", logEntry);
             this.logEntries.add(logEntry);
         } else {
             try {
