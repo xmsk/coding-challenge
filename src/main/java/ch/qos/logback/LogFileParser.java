@@ -18,26 +18,16 @@ public class LogFileParser {
     private static final Logger LOGGER = Logger.getLogger(LogFileParser.class.getName());
 
     private final String filename;
-    private final long threshold;
     // cache for temporary LogEntries that have not matched another event yet
     private final Vector<LogEntry> logEntries;
     private final Session dbSession;
 
     /**
-     * Constructor with default threshold
-     */
-    public LogFileParser(String filename) {
-        this(filename, 4);
-    }
-
-    /**
      * Constructs a LogFileParser for a given log file and threshold
      * @param filename  name of the log file to parse
-     * @param threshold threshold in ms for LogEvents to be flagged
      */
-    public LogFileParser(String filename, long threshold) {
+    public LogFileParser(String filename) {
         this.filename = filename;
-        this.threshold = threshold;
         this.logEntries = new Vector<>();
         SessionFactory dbSessionFactory = HibernateUtil.getNewSessionFactory();
         this.dbSession = dbSessionFactory.openSession();
@@ -111,7 +101,7 @@ public class LogFileParser {
         } else {
             try {
                 // TODO: is there a better place for storing the threshold?
-                LogEvent logEvent = new LogEvent(oldLogEntry, logEntry, this.threshold);
+                LogEvent logEvent = new LogEvent(oldLogEntry, logEntry);
                 this.recordLogEvent(logEvent);
             } catch (IncompatibleLogentriesException e) {
                 LOGGER.log(

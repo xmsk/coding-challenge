@@ -7,6 +7,8 @@ import javax.persistence.Table;
 @Entity
 @Table
 public class LogEvent {
+    public static long threshold = 4;
+
     private String id;
     private long duration;
     private String type;
@@ -17,9 +19,8 @@ public class LogEvent {
      * Constructs a LogEvent from two matching LogEntries
      * @param entry1    first LogEntry
      * @param entry2    second LogEntry
-     * @param threshold boolean indicating whether the event should be flagged
      */
-    public LogEvent(LogEntry entry1, LogEntry entry2, long threshold) throws IncompatibleLogentriesException {
+    public LogEvent(LogEntry entry1, LogEntry entry2) throws IncompatibleLogentriesException {
         if (!entry1.getId().equals(entry2.getId())) {
             throw new IncompatibleLogentriesException("IDs of the two provided LogEntries don't match");
         }
