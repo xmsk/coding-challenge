@@ -1,11 +1,17 @@
 package ch.qos.logback;
 
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Entity
+@Table
 public class LogEvent {
-    private final String id;
-    private final long duration;
-    private final String type;
-    private final String host;
-    private final boolean alert;
+    private String id;
+    private long duration;
+    private String type;
+    private String host;
+    private boolean alert;
 
     /**
      * Constructs a LogEvent from two matching LogEntries
@@ -17,8 +23,8 @@ public class LogEvent {
         if (!entry1.getId().equals(entry2.getId())) {
             throw new IncompatibleLogentriesException("IDs of the two provided LogEntries don't match");
         }
-        if (! (entry1.getState().equals("STARTED") && entry2.getState().equals("STOPPED") ||
-            entry2.getState().equals("STARTED") && entry1.getState().equals("STOPPED"))) {
+        if (! (entry1.getState().equals("STARTED") && entry2.getState().equals("FINISHED") ||
+            entry2.getState().equals("STARTED") && entry1.getState().equals("FINISHED"))) {
             throw new IncompatibleLogentriesException("LogEntries provided do not form a proper LogEvent");
         }
 
@@ -32,5 +38,46 @@ public class LogEvent {
     public String toString() {
         return "LogEvent - id (" + this.id + "), duration (" + this.duration + "), type (" + this.type + "), host (" +
              this.host + "), alert (" + this.alert + ")";
+    }
+
+    @Id
+    public String getId() {
+        return id;
+    }
+
+    public long getDuration() {
+        return duration;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public boolean isAlert() {
+        return alert;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public void setDuration(long duration) {
+        this.duration = duration;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
+    }
+
+    public void setAlert(boolean alert) {
+        this.alert = alert;
     }
 }

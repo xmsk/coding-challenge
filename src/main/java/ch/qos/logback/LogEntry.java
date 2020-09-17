@@ -2,13 +2,13 @@ package ch.qos.logback;
 
 public class LogEntry {
     // TODO: create ApplicationServerLogEvent sub class?
-    private final String id;
+    private String id;
     // TODO: change to enum?
-    private final String state;
-    private final long timestamp;
+    private String state;
+    private long timestamp;
 
-    private final String type;
-    private final String host;
+    private String type;
+    private String host;
 
     /**
      * Constructs a "simple" LogEvent
@@ -39,22 +39,43 @@ public class LogEntry {
     }
 
     public String getId() {
-        return id;
+        return this.id;
+    }
+
+    // TODO: remove setters?
+    public void setId(String id) {
+        this.id = id;
     }
 
     public long getTimestamp() {
         return timestamp;
     }
 
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
+    }
+
     public String getState() {
         return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
     }
 
     public String getType() {
         return type;
     }
 
+    public void setType(String type) {
+        this.type = type;
+    }
+
     public String getHost() {
         return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
     }
 }

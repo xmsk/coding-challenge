@@ -1,10 +1,11 @@
 package ch.qos.logback;
 
 import com.google.gson.Gson;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.sql.Connection;
 import java.util.Scanner;
 import java.util.Vector;
 import java.util.logging.Level;
@@ -20,10 +21,13 @@ public class LogFileParser {
     private final long threshold;
     // cache for temporary LogEntries that have not matched another event yet
     private final Vector<LogEntry> logEntries;
-    private final Connection dbConnection;
+    private final Session dbSession;
 
-    public LogFileParser(String filename, Connection con) {
-        this(filename, 4, con);
+    /**
+     * Constructor with default threshold
+     */
+    public LogFileParser(String filename) {
+        this(filename, 4);
     }
 
     /**
@@ -31,11 +35,23 @@ public class LogFileParser {
      * @param filename  name of the log file to parse
      * @param threshold threshold in ms for LogEvents to be flagged
      */
-    public LogFileParser(String filename, long threshold, Connection con) {
+    public LogFileParser(String filename, long threshold) {
         this.filename = filename;
         this.threshold = threshold;
         this.logEntries = new Vector<>();
-        this.dbConnection = con;
+        SessionFactory dbSessionFactory = HibernateUtil.getNewSessionFactory();
+        this.dbSession = dbSessionFactory.openSession();
+    }
+
+    /**
+     * Closes the database connection when the LofParser object is destroyed
+     */
+    @Override
+    protected void finalize() throws Throwable {
+        super.finalize();
+        if (this.dbSession != null) {
+            this.dbSession.close();
+        }
     }
 
     /**
@@ -43,7 +59,6 @@ public class LogFileParser {
      * for longer than this.threshold
      */
     public void parse() throws FileNotFoundException {
-        // TODO: add segmentation for memory efficiency
         Gson g = new Gson();
 
         File logFile = new File(this.filename);
@@ -93,7 +108,6 @@ public class LogFileParser {
         if (oldLogEntry == null) {
             LOGGER.log(Level.FINER, "No matching LogEvent found, adding '{0}' to local cache", logEntry);
             this.logEntries.add(logEntry);
-            return;
         } else {
             try {
                 // TODO: is there a better place for storing the threshold?
@@ -101,7 +115,7 @@ public class LogFileParser {
                 this.recordLogEvent(logEvent);
             } catch (IncompatibleLogentriesException e) {
                 LOGGER.log(
-                    Level.SEVERE, "Cannot create LogEvent from provided LogEntries '{0}' and '{1}', skipping",
+                    Level.SEVERE, "Cannot create LogEvent from provided LogEntries `{0}` and `{1}`, skipping",
                     new Object[] {oldLogEntry, logEntry}
                 );
                 LOGGER.log(Level.SEVERE, e.toString(), e);
@@ -115,7 +129,9 @@ public class LogFileParser {
      * @param logEvent  the LogEvent to be recorded in the database
      */
     private void recordLogEvent(LogEvent logEvent) {
-        // TODO: implement proper recording
-        System.out.println(logEvent);
+        // TODO: error handling
+        this.dbSession.getTransaction().begin();
+        this.dbSession.save(logEvent);
+        this.dbSession.getTransaction().commit();
     }
 }
