@@ -1,6 +1,5 @@
 package ch.qos.logback;
 
-import com.google.gson.Gson;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
@@ -17,7 +16,7 @@ import java.util.logging.Logger;
 public class LogFileParser {
     private static final Logger LOGGER = Logger.getLogger(LogFileParser.class.getName());
 
-    private final String filename;
+    private String filename;
     // cache for temporary LogEntries that have not matched another event yet
     private final Vector<LogEntry> logEntries;
     private final Session dbSession;
@@ -44,13 +43,19 @@ public class LogFileParser {
         }
     }
 
+    public Vector<LogEntry> getLogEntries() {
+        return logEntries;
+    }
+
+    public void setFilename(String filename) {
+        this.filename = filename;
+    }
+
     /**
      * Parses the log file this.filename, records all LogEntries in the local HSQLDB, and flags all LogEvents that last
      * for longer than this.threshold
      */
     public void parse() throws FileNotFoundException {
-        Gson g = new Gson();
-
         File logFile = new File(this.filename);
         Scanner myReader = new Scanner(logFile);
 
@@ -58,13 +63,25 @@ public class LogFileParser {
         while (myReader.hasNextLine()) {
             String data = myReader.nextLine();
             LOGGER.log(Level.FINER, "Raw JSON log event read from log file: '{0}'", data);
-            // TODO: catch some errors and log in case generation fails, etc.
-            LogEntry logEntry = g.fromJson(data, LogEntry.class);
-            LOGGER.log(Level.FINEST, "Parsed LogEvent: '{0}'", logEntry);
-            this.handleLogEntry(logEntry);
+            try {
+                LogEntry logEntry = LogEntry.fromJson(data);
+                LOGGER.log(Level.FINEST, "Parsed LogEvent: '{0}'", logEntry);
+                this.handleLogEntry(logEntry);
+            } catch (IllegalLogEntryException e) {
+                LOGGER.log(Level.SEVERE, "LogEntry could not be created from Json data `{0}`, skipping", data);
+                LOGGER.log(Level.SEVERE, e.toString(), e);
+            }
         }
 
         myReader.close();
+
+        if (this.logEntries.size() > 0) {
+            LOGGER.log(
+                Level.WARNING,
+                "Unmatched LogEntries remaining after parsing: {}",
+                this.logEntries.toString()
+            );
+        }
     }
 
     /**
@@ -100,7 +117,6 @@ public class LogFileParser {
             this.logEntries.add(logEntry);
         } else {
             try {
-                // TODO: is there a better place for storing the threshold?
                 LogEvent logEvent = new LogEvent(oldLogEntry, logEntry);
                 this.recordLogEvent(logEvent);
             } catch (IncompatibleLogentriesException e) {

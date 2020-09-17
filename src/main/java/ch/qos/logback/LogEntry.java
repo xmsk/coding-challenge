@@ -1,9 +1,9 @@
 package ch.qos.logback;
 
+import com.google.gson.Gson;
+
 public class LogEntry {
-    // TODO: create ApplicationServerLogEvent sub class?
     private final String id;
-    // TODO: change to enum?
     private final String state;
     private final long timestamp;
 
@@ -11,7 +11,14 @@ public class LogEntry {
     private final String host;
 
     /**
-     * Constructs a LogEvent
+     * constructs a "simple" LogEntry
+     */
+    public LogEntry(String id, String state, long timestamp) {
+        this(id, state, timestamp, null, null);
+    }
+
+    /**
+     * Constructs an Application Server LogEntry
      * @param id        id of the LogEvent
      * @param state     state of the LogEvent ("STARTED" or "FINISHED")
      * @param timestamp timestamp for the LogEvent
@@ -49,5 +56,21 @@ public class LogEntry {
 
     public String getHost() {
         return host;
+    }
+
+    /**
+     * Generates a LogEntry object from a json string
+     * @param data  json String representing a LogEntry object
+     * @return      a LogEntry object with the attributes set according to the Json object in the String
+     */
+    public static LogEntry fromJson(String data) throws IllegalLogEntryException {
+        Gson g = new Gson();
+        LogEntry logEntry = g.fromJson(data, LogEntry.class);
+
+        if (logEntry.getId() == null || logEntry.getState() == null) {
+            throw new IllegalLogEntryException("Mandatory field for LogEntry missing");
+        }
+
+        return logEntry;
     }
 }
