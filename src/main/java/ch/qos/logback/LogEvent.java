@@ -16,6 +16,11 @@ public class LogEvent {
     private boolean alert;
 
     /**
+     * Default constructor for hibernate
+     */
+    public LogEvent() {};
+
+    /**
      * Constructs a LogEvent from two matching LogEntries
      * @param entry1    first LogEntry
      * @param entry2    second LogEntry

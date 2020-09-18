@@ -16,7 +16,7 @@ import java.util.logging.Logger;
 public class LogFileParser {
     private static final Logger LOGGER = Logger.getLogger(LogFileParser.class.getName());
 
-    private String filename;
+    private final String filename;
     // cache for temporary LogEntries that have not matched another event yet
     private final Vector<LogEntry> logEntries;
     private final Session dbSession;
@@ -41,14 +41,6 @@ public class LogFileParser {
         if (this.dbSession != null) {
             this.dbSession.close();
         }
-    }
-
-    public Vector<LogEntry> getLogEntries() {
-        return logEntries;
-    }
-
-    public void setFilename(String filename) {
-        this.filename = filename;
     }
 
     /**

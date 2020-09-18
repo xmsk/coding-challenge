@@ -1,21 +1,29 @@
 package ch.qos.logback;
 
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
 public class LogFileParserTest {
-    // TODO: create tests for DB accessing methods?
-    private LogFileParser logFileParser = new LogFileParser("dummy.txt");
+    private Session dbSession;
 
     @Before
     public void setUp() throws Exception {
-        // TODO: set p some cache records for testing?
+        SessionFactory dbSessionFactory = HibernateUtil.getNewSessionFactory();
+        this.dbSession = dbSessionFactory.openSession();
     }
 
     @Test
-    public void popExistingLogEntry() {
-        // TODO: test method to pop entries from cache
+    public void parseRegularFile() throws Exception {
+        LogFileParser parser = new LogFileParser("src/test/resources/regularFile.txt");
+        parser.parse();
+        assertEquals(3, this.dbSession.createQuery("from LogEvent").list().size());
     }
+
+    // TODO: add more parse tests
+    //  - file not found?
+    //  - invalid log entries - works fine?
 }
