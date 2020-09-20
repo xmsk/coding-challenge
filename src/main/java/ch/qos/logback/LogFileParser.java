@@ -1,7 +1,6 @@
 package ch.qos.logback;
 
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -24,23 +23,12 @@ public class LogFileParser {
     /**
      * Constructs a LogFileParser for a given log file and threshold
      * @param filename  name of the log file to parse
+     * @param dbSession hibernate session for storing LogEvents in the database
      */
-    public LogFileParser(String filename) {
+    public LogFileParser(String filename, Session dbSession) {
         this.filename = filename;
         this.logEntries = new Vector<>();
-        SessionFactory dbSessionFactory = HibernateUtil.getNewSessionFactory();
-        this.dbSession = dbSessionFactory.openSession();
-    }
-
-    /**
-     * Closes the database connection when the LofParser object is destroyed
-     */
-    @Override
-    protected void finalize() throws Throwable {
-        super.finalize();
-        if (this.dbSession != null) {
-            this.dbSession.close();
-        }
+        this.dbSession = dbSession;
     }
 
     /**
@@ -127,7 +115,6 @@ public class LogFileParser {
      * @param logEvent  the LogEvent to be recorded in the database
      */
     private void recordLogEvent(LogEvent logEvent) {
-        // TODO: error handling
         this.dbSession.getTransaction().begin();
         this.dbSession.save(logEvent);
         this.dbSession.getTransaction().commit();

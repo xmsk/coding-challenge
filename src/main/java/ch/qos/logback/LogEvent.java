@@ -18,7 +18,30 @@ public class LogEvent {
     /**
      * Default constructor for hibernate
      */
-    public LogEvent() {};
+    public LogEvent() {}
+
+    /**
+     * Constructor for a "simple" LogEvent
+     */
+    public LogEvent(String id, long duration, boolean alert) {
+        this(id, duration, null, null, alert);
+    }
+
+    /**
+     * Standard constructor for LogEvent
+     * @param id        id of the LogEvent
+     * @param duration  duration of the LogEvent
+     * @param type      type of the LogEvent (for Application Server LogEvents)
+     * @param host      host of the LogEvent (for Application Server LogEvents)
+     * @param alert     indicates if the LogEvent is flagged
+     */
+    public LogEvent(String id, long duration, String type, String host, boolean alert) {
+        this.id = id;
+        this.duration = duration;
+        this.type = type;
+        this.host = host;
+        this.alert = alert;
+    }
 
     /**
      * Constructs a LogEvent from two matching LogEntries
