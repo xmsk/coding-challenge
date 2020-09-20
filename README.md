@@ -5,6 +5,12 @@ Build the project using gradle in the top-level directory like so
 gradle build
 ```
 
+## Test project
+Test the project using gradle like so
+```
+gradle test
+```
+
 ## Running the project
 ### Providing the database
 The Java program assumes that a HSQLDB is running on localhost, make sure this is the case.
