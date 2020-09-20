@@ -12,16 +12,14 @@ gradle test
 ```
 
 ## Running the project
-### Providing the database
-The Java program assumes that a HSQLDB is running on localhost, make sure this is the case.
-If not database is running, download the HSQLDB package from [sourceforge](https://sourceforge.net/projects/hsqldb/files/hsqldb/hsqldb_2_5/hsqldb-2.5.1.zip/download).
-From the working folder start the HSQLDB like so
-```
-java -cp <hsqldb_installdir>/lib/hsqldb.jar org.hsqldb.server.Server --database.0 file:mydb --dbname.0 Logging
-``` 
-
-### Running the program
+The application automatically starts an HSQLDB server writing to a local file based database `mydb`.
 Run the project from the top-level directory by passing the name of the log file (`<log_file_name>`) as an argument to the `gradle run` task like so
 ```
 gradle run --args="<log_file_name>"
 ```
+
+Alternatively the project can be run manually using the `java` command like so
+```
+java -cp <class_path> ch.qos.logback.LogProcessor
+```
+where `<class_path>` can be found using the `gradle` task `gradle printLib`.
