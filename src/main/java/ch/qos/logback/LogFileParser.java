@@ -48,8 +48,8 @@ public class LogFileParser {
                 LOGGER.log(Level.FINEST, "Parsed LogEvent: '{0}'", logEntry);
                 this.handleLogEntry(logEntry);
             } catch (IllegalLogEntryException e) {
-                LOGGER.log(Level.SEVERE, "LogEntry could not be created from Json data `{0}`, skipping", data);
-                LOGGER.log(Level.SEVERE, e.toString(), e);
+                LOGGER.log(Level.WARNING, "LogEntry could not be created from Json data `{0}`, skipping", data);
+                LOGGER.log(Level.WARNING, e.toString(), e);
             }
         }
 
@@ -101,10 +101,9 @@ public class LogFileParser {
                 this.recordLogEvent(logEvent);
             } catch (IncompatibleLogentriesException e) {
                 LOGGER.log(
-                    Level.SEVERE, "Cannot create LogEvent from provided LogEntries `{0}` and `{1}`, skipping",
+                    Level.WARNING, "Cannot create LogEvent from provided LogEntries `{0}` and `{1}`, skipping",
                     new Object[] {oldLogEntry, logEntry}
                 );
-                LOGGER.log(Level.SEVERE, e.toString(), e);
             }
         }
     }
@@ -120,8 +119,8 @@ public class LogFileParser {
             this.dbSession.save(logEvent);
             this.dbSession.getTransaction().commit();
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Could not record `{0}`", logEvent);
-            LOGGER.log(Level.SEVERE, e.toString(), e);
+            LOGGER.log(Level.WARNING, "Could not record `{0}`", logEvent);
+            LOGGER.log(Level.WARNING, e.toString(), e);
         }
     }
 }
