@@ -115,8 +115,13 @@ public class LogFileParser {
      * @param logEvent  the LogEvent to be recorded in the database
      */
     private void recordLogEvent(LogEvent logEvent) {
-        this.dbSession.getTransaction().begin();
-        this.dbSession.save(logEvent);
-        this.dbSession.getTransaction().commit();
+        try {
+            this.dbSession.getTransaction().begin();
+            this.dbSession.save(logEvent);
+            this.dbSession.getTransaction().commit();
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Could not record `{0}`", logEvent);
+            LOGGER.log(Level.SEVERE, e.toString(), e);
+        }
     }
 }
