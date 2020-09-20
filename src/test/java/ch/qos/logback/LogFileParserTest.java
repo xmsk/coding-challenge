@@ -2,6 +2,7 @@ package ch.qos.logback;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -11,11 +12,19 @@ import static org.junit.Assert.*;
 
 public class LogFileParserTest {
     private Session dbSession;
+    private HsqldbServer dbServer;
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
+        this.dbServer = new HsqldbServer("testdb");
+        this.dbServer.startServer();
         SessionFactory dbSessionFactory = HibernateUtil.getNewSessionFactory();
         this.dbSession = dbSessionFactory.openSession();
+    }
+
+    @After
+    public void tearDown() {
+        this.dbServer.stopServer();
     }
 
     @Test
